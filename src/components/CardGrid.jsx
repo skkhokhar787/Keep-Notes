@@ -40,11 +40,12 @@ const CardGrid = () => {
   // ============================================
   const handleDragEnd = async (event) => {
     const { active, over } = event;
-    console.log("🔥 DRAGGING WORKS", event);
+    console.log("[DnD] handleDragEnd fired", { activeId: active.id, overId: over?.id });
 
     if (over && active.id !== over.id) {
       const oldIndex = activeNotes.findIndex((note) => note.id === active.id);
       const newIndex = activeNotes.findIndex((note) => note.id === over.id);
+      console.log("[DnD] Reordering:", { oldIndex, newIndex, activeNotesCount: activeNotes.length });
 
       // Create new ordered array
       const newNotes = [...activeNotes];
@@ -53,12 +54,16 @@ const CardGrid = () => {
 
       // Extract note IDs in new order
       const newOrderIds = newNotes.map((note) => note.id);
+      console.log("[DnD] New order IDs:", newOrderIds);
 
       try {
         await reorderNotes(newOrderIds);
+        console.log("[DnD] Reorder saved to Firestore successfully");
       } catch (error) {
-        console.error("Failed to reorder notes:", error);
+        console.error("[DnD] Failed to reorder notes:", error);
       }
+    } else {
+      console.log("[DnD] No reorder needed (same position or no target)");
     }
 
     setActiveId(null);

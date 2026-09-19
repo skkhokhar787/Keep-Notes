@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Pencil, Check, X, Trash2, FileText } from "lucide-react";
 import { useNotes } from "../context/NotesContext";
 import { useSortable } from "@dnd-kit/sortable";
@@ -11,7 +11,10 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title || "");
   const [editDescription, setEditDescription] = useState(des || "");
-  const hasDraggedRef = React.useRef(false);
+  
+  // Track if a drag occurred during current pointer interaction
+  const dragOccurredRef = useRef(false);
+  const pointerDownRef = useRef(false);
 
   // ============================================
   // DND SORTABLE HOOK
@@ -25,6 +28,13 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
     isDragging: isSortableDragging,
   } = useSortable({ id });
 
+  // Track drag state: set when dragging starts (transform changes)
+  useEffect(() => {
+    if (isSortableDragging && pointerDownRef.current) {
+      dragOccurredRef.current = true;
+    }
+  }, [isSortableDragging]);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -32,29 +42,41 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
   };
 
   // ============================================
+  // WRAP LISTENERS FOR CLICK VS DRAG DETECTION
+  // ============================================
+  const wrappedListeners = React.useMemo(() => {
+    const originalPointerDown = listeners.onPointerDown;
+    const originalPointerUp = listeners.onPointerUp;
+    const originalPointerMove = listeners.onPointerMove;
+
+    return {
+      ...listeners,
+      onPointerDown: (event) => {
+        pointerDownRef.current = true;
+        dragOccurredRef.current = false;
+        originalPointerDown?.(event);
+      },
+      onPointerUp: (event) => {
+        pointerDownRef.current = false;
+        originalPointerUp?.(event);
+      },
+      onPointerMove: (event) => {
+        if (pointerDownRef.current) {
+          dragOccurredRef.current = true;
+        }
+        originalPointerMove?.(event);
+      },
+    };
+  }, [listeners]);
+
+  // ============================================
   // HANDLE CLICK - Only open if not dragged
   // ============================================
   const handleClick = () => {
-    if (!hasDraggedRef.current) {
+    if (!dragOccurredRef.current) {
       handleOpen();
     }
-    hasDraggedRef.current = false;
-  };
-
-  // ============================================
-  // DND EVENT HANDLERS
-  // ============================================
-  const handleDragStart = () => {
-    hasDraggedRef.current = true;
-  };
-
-  // ============================================
-  // OPEN NOTE
-  // ============================================
-  const handleOpen = () => {
-    setEditTitle(title || "");
-    setEditDescription(des || "");
-    setIsOpen(true);
+    dragOccurredRef.current = false;
   };
 
   // ============================================
@@ -138,10 +160,9 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
         ref={setNodeRef}
         style={style}
         {...attributes}
-        {...listeners}
+        {...wrappedListeners}
         onClick={handleClick}
-        onDragStart={handleDragStart}
-        className="group relative flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-xs transition-all hover:border-gray-300 hover:shadow-sm  active:cursor-grabbing min-w-0 overflow-hidden"
+        className="group relative flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-xs transition-all hover:border-gray-300 hover:shadow-sm cursor-grab active:cursor-grabbing min-w-0 overflow-hidden"
       >
         <div className="min-w-0 overflow-hidden">
           {status === "draft" && (

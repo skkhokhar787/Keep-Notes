@@ -9,6 +9,7 @@ import {
   serverTimestamp,
   updateDoc,
   doc,
+  writeBatch,
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -39,6 +40,7 @@ export const NotesProvider = ({ children }) => {
 
         const notesQuery = query(
           notesRef,
+          orderBy("order", "asc"),
           orderBy("date", "desc"),
         );
 
@@ -65,28 +67,24 @@ export const NotesProvider = ({ children }) => {
   // FILTERED NOTES
   // ============================================
 
-  // Active notes
-  const activeNotes = notes
-    .filter(
-      (note) =>
-        note.status === "active" &&
-        note.deleted !== true,
-    )
-    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  // Active notes (Firestore query already orders by order asc, date desc)
+  const activeNotes = notes.filter(
+    (note) =>
+      note.status === "active" &&
+      note.deleted !== true,
+  );
 
   // Draft notes
-  const draftNotes = notes
-    .filter(
-      (note) =>
-        note.status === "draft" &&
-        note.deleted !== true,
-    )
-    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  const draftNotes = notes.filter(
+    (note) =>
+      note.status === "draft" &&
+      note.deleted !== true,
+  );
 
   // Deleted notes
-  const deletedNotes = notes
-    .filter((note) => note.deleted === true)
-    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  const deletedNotes = notes.filter(
+    (note) => note.deleted === true,
+  );
 
   // ============================================
   // CREATE NOTE
@@ -373,19 +371,27 @@ export const NotesProvider = ({ children }) => {
         throw new Error("User is not logged in.");
       }
 
-      const batchUpdates = noteIds.map((id, index) => {
+      // Use writeBatch for atomic updates
+      const batch = writeBatch(db);
+
+      noteIds.forEach((id, index) => {
         const noteRef = doc(db, "users", user.uid, "notes", id);
-        return updateDoc(noteRef, { order: index });
+        batch.update(noteRef, { order: index });
       });
 
-      await Promise.all(batchUpdates);
+      await batch.commit();
 
+      // Update local state - preserve all existing fields including Firestore Timestamps
       setNotes((prevNotes) => {
         const noteMap = new Map(prevNotes.map((note) => [note.id, note]));
-        return noteIds.map((id, index) => ({
-          ...noteMap.get(id),
-          order: index,
-        }));
+        return noteIds.map((id, index) => {
+          const existingNote = noteMap.get(id);
+          if (!existingNote) return null;
+          return {
+            ...existingNote,
+            order: index,
+          };
+        }).filter(Boolean);
       });
     } catch (error) {
       console.error("Error reordering notes:", error);
