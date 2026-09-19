@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@import "@fontsource-variable/fredoka";
+
+/* 2. Alternative: If using Google Fonts link instead of Fontsource */
+/* @import url('https://googleapis.com'); */
+
+@theme {
+  /* This automatically generates the 'font-fredoka' utility class */
+  --font-fredoka: "Fredoka Variable", sans-serif;
+}
+  /* Use "Fredoka" if you opted for the Google Fonts link instead */
+  /*
