@@ -32,7 +32,7 @@ const CardGrid = () => {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   // ============================================
@@ -40,7 +40,7 @@ const CardGrid = () => {
   // ============================================
   const handleDragEnd = async (event) => {
     const { active, over } = event;
-
+    console.log("DRAG END:", event);
     if (over && active.id !== over.id) {
       const oldIndex = activeNotes.findIndex((note) => note.id === active.id);
       const newIndex = activeNotes.findIndex((note) => note.id === over.id);
