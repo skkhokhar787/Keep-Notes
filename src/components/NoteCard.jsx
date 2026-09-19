@@ -48,6 +48,7 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
     const originalPointerDown = listeners.onPointerDown;
     const originalPointerUp = listeners.onPointerUp;
     const originalPointerMove = listeners.onPointerMove;
+    const originalClick = listeners.onClick;
 
     return {
       ...listeners,
@@ -66,18 +67,16 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
         }
         originalPointerMove?.(event);
       },
+      onClick: (event) => {
+        // Only trigger click handler if no drag occurred
+        if (!dragOccurredRef.current) {
+          handleOpen();
+        }
+        dragOccurredRef.current = false;
+        originalClick?.(event);
+      },
     };
   }, [listeners]);
-
-  // ============================================
-  // HANDLE CLICK - Only open if not dragged
-  // ============================================
-  const handleClick = () => {
-    if (!dragOccurredRef.current) {
-      handleOpen();
-    }
-    dragOccurredRef.current = false;
-  };
 
   // ============================================
   // CLOSE NOTE
@@ -161,8 +160,7 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
         style={style}
         {...attributes}
         {...wrappedListeners}
-        onClick={handleClick}
-        className="group relative flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-xs transition-all hover:border-gray-300 hover:shadow-sm cursor-grab active:cursor-grabbing min-w-0 overflow-hidden"
+        className="group relative flex flex-col justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-xs transition-all hover:border-gray-300 hover:shadow-sm cursor-pointer min-w-0 overflow-hidden"
       >
         <div className="min-w-0 overflow-hidden">
           {status === "draft" && (
