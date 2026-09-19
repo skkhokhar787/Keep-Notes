@@ -40,7 +40,8 @@ const CardGrid = () => {
   // ============================================
   const handleDragEnd = async (event) => {
     const { active, over } = event;
-    console.log("DRAG END:", event);
+    console.log("🔥 DRAGGING WORKS", event);
+
     if (over && active.id !== over.id) {
       const oldIndex = activeNotes.findIndex((note) => note.id === active.id);
       const newIndex = activeNotes.findIndex((note) => note.id === over.id);
