@@ -170,11 +170,11 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
             </div>
           )}
 
-          <h3 className="text-base font-semibold text-gray-900 break-words min-w-0 line-clamp-2">
+          <h3 className="text-base font-semibold text-gray-900 wrap-break-word min-w-0 line-clamp-2">
             {title || "Untitled Note"}
           </h3>
 
-          <p className="mt-1.5 text-sm text-gray-600 break-words whitespace-pre-wrap min-w-0 line-clamp-4 leading-relaxed">
+          <p className="mt-1.5 text-sm text-gray-600 wrap-break-word whitespace-pre-wrap min-w-0 line-clamp-4 leading-relaxed">
             {des || "No description"}
           </p>
         </div>
@@ -230,7 +230,7 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
                   onChange={(e) => setEditDescription(e.target.value)}
                   placeholder="Write your note..."
                   rows={8}
-                  className="w-full resize-y rounded-md border border-gray-300 p-3 text-sm text-gray-800 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 break-words whitespace-pre-wrap min-w-0"
+                  className="w-full resize-y rounded-md border border-gray-300 p-3 text-sm text-gray-800 outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 wrap-break-words whitespace-pre-wrap min-w-0"
                 />
 
                 <div className="mt-4 flex justify-end gap-2 border-t border-gray-100 pt-3">
@@ -265,11 +265,11 @@ const NoteCard = ({ id, title, des, time, status, isDragging }) => {
                   </div>
                 )}
 
-                <h3 className="text-lg font-semibold text-gray-900 break-words min-w-0">
+                <h3 className="text-lg font-semibold text-gray-900 wrap-break-words min-w-0">
                   {title || "Untitled Note"}
                 </h3>
 
-                <div className="mt-3 text-sm text-gray-700 break-words whitespace-pre-wrap min-w-0 overflow-hidden leading-relaxed">
+                <div className="mt-3 text-sm text-gray-700 wrap-break-words whitespace-pre-wrap min-w-0 overflow-hidden leading-relaxed">
                   {des || "No description"}
                 </div>
 
